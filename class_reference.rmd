@@ -14,7 +14,48 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Four (Typical) Data Types
+Numeric = a number
+Character = "text" like county or business name, but can also be numbers like ZIP codes of phone numbers; identifiers
+Date = fully-formed dates, like 2019-10-01; incomplete dates, like 2019, are numberic
+Logical = yes/no, true/false, etc; rare(ish)
 
-## Introduction
+## General
 
-Consider this a personal guide to the commands and functions you will learn. In general, when you come across an R command or function that you want to remember, put it in here along with a description of what it does and when you'd use it.
+ppp_maryland_loans <- read_rds("ppp_maryland.rds")
+[        1       ][ 2 ][   3  ][        4        ]
+*variable* [1] name used to refer to some more complex thing
+*variable assignment operator* [2] assigns a word to something
+*function* [3] computer code that takes in information; follows series of pre-determined steps; spits it back out
+*argument* [4] things put inside of function to customize what the function does
+
+*%>%* = "and then do this"
+*data %>% function* = typical pattern, "take data and do this specific action"
+
+data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(COLUMN NAME))
+
+## Functions & Commands
+*glimpse(x)* = list of the columns, the data type for each column, first few values for each column
+*head(x)* = print out columns & first six rows of data
+*group_by(x)* = group data together by column "x" character
+*summarise(x)* = sets up any desired summaries
+  EXAMPLE:
+  ppp_maryland_loans %>%               - take this data set;
+  group_by(project_county_name) %>%    - group rows together according to the names of the counties;
+  summarise(                           - and summarize it like this:
+    count_loans = n()                  - the number of rows (each individual loan) in each county name.
+  )
+
+*n()* = the number of the summarized function
+*arrange(x)* = arrange according to a certain property; can have multiple targets to sort by one than the other
+  EXAMPLES:
+  arrange(desc(count_loans))           - highest number number of loans first
+  arrange(project_county_name,race)    - loans in each county to each racial demographic alphabetically
+    arrange(desc())                    - highest to lowest
+    arrange(asc())                     - lowest to highest
+    -default-                          - alphabetically
+
+*sum(x)* = sum of numeric values in column "x"
+*mean(x)* = average of numeric values in column "x"
+*median(x)* = value that sits at the midpoint of all values in column "x"
+*min(x)/max(x)* = lowest/highest value in column "x"
