@@ -22,6 +22,14 @@ Logical = yes/no, true/false, etc; rare(ish)
 
 ## General
 
+!Set Working Directory! - do this first
+setwd("~target/path/name")
+
+Making a code block always looks like:
+```{r}
+
+```
+
 ppp_maryland_loans <- read_rds("ppp_maryland.rds")
 [        1       ][ 2 ][   3  ][        4        ]
 *variable* [1] name used to refer to some more complex thing
