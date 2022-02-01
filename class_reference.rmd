@@ -25,6 +25,8 @@ Logical = yes/no, true/false, etc; rare(ish)
 !Set Working Directory! - do this first
 setwd("~target/path/name")
 
+Use /# to make comments like <-- --> in HTML or /* */ in CSS
+
 Making a code block always looks like:
 ```{r}
 
@@ -45,7 +47,11 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
 ## Functions & Commands
 *glimpse(x)* = list of the columns, the data type for each column, first few values for each column
 *head(x)* = print out columns & first six rows of data
+*head(x)* = first 6 rows of dataset x
+*colnames (x)* = names of all columns in dataset x
+*summary(x)* = for numerics: minimum, 1st quartile, median, mean, 3rd quartile, and max of all columns in dataset x; for characters: number of rows
 *group_by(x)* = group data together by column "x" character
+*select(x,y,z)* = show all rows but only with columns x, y and z
 *summarise(x)* = sets up any desired summaries
   EXAMPLE:
   ppp_maryland_loans %>%               - take this data set;
@@ -58,7 +64,9 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
 *arrange(x)* = arrange according to a certain property; can have multiple targets to sort by one than the other
   EXAMPLES:
   arrange(desc(count_loans))           - highest number number of loans first
-  arrange(project_county_name,race)    - loans in each county to each racial demographic alphabetically
+  arrange(project_county_name,race)    - loans in each county to each racial demographic
+alphabetically
+  arrange(percent_payroll, desc(amount)) - lowest payroll percentage, and within that, highest loan amount - *first column in arrange takes precedent, then second, and so on*
     arrange(desc())                    - highest to lowest
     arrange(asc())                     - lowest to highest
     -default-                          - alphabetically
@@ -67,3 +75,33 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
 *mean(x)* = average of numeric values in column "x"
 *median(x)* = value that sits at the midpoint of all values in column "x"
 *min(x)/max(x)* = lowest/highest value in column "x"
+
+*mutate(x = y)* = create new column "x" with a value (typically a function) of "y"
+  mutate(percent_payroll = payroll_proceed/amount)*100 - find out what percent of each loan went towards payroll by dividing the raw amount sent to payroll by the total loan, and multiply by 100
+  mutate(in_out = *if_else*(
+    servicing_lender_state == 'MD', "IN", "OUT"
+  ) = make new column "in_out" saying if s_l_s is or isn't in Maryland, remember double *==*
+  maryland_jobs_categories <- maryland_ppp %>%
+mutate(
+  jobs_retained_category = *case_when*(
+    jobs_retained < 10 ~ 'under_10',
+    jobs_retained >= 10 & jobs_retained < 25 ~ '10_to_25',
+    jobs_retained >= 50 & jobs_retained < 100 ~ '50_to_100',
+    jobs_retained >= 100 & jobs_retained < 250 ~ '100_to_250',
+    jobs_retained >= 250 & jobs_retained < 500 ~ '250_to_500',
+    jobs_retained == 500 ~ '500'
+  ) = new column based on ranges of values; similar to if_else but with >2 potential buckets
+)
+  *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works
+  *floor_date(x, "y")* = rounds column "x" down to nearest boundary of specified time unit "y"
+  *ceiling_date(x, "y")* = rounds column "x" up to nearest boundary of specified time unit "y"
+
+*filter(x [y] z)*:  x = any column name from your dataframe; [y] = some comparison operator (==, >,  <); Z = something to compare the x to
+  use /&/ to do more than one filter at once, e.g. <filter(project_county_name == "PRINCE GEORGES" & business_type == "Non-Profit Organization" & amount > 150000)>
+  use /|/ to allow for more than one filter criteria, wherein a row that fits any one of the listed filters will be shown, e.g. <filter(project_county_name == "PRINCE GEORGES" | business_type == "Non-Profit Organization" | amount > 150000)>
+
+
+## Different Libraries ##
+
+*lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
+*tidyverse* - group of libraries that makes life easier
