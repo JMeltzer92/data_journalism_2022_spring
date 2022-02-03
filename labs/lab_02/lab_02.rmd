@@ -65,10 +65,10 @@ west_virginia_loan_amount %>% group_by(loan_amount_category) %>% summarize(count
 ```
 
 **Q2** Some of the loans appear not to have been paid out - there is a column representing the amount of money that hasn't been disbursed to the applicant. Which servicing lenders have the most loans with undisbursed amounts greater than 0?
-**A2** Davis Trust Company holds twelve of the thirteen loans that still have outstanding funds that need to be paid to recipients.
+**A2** Davis Trust Company holds 12 of the 13 loans that still have outstanding funds that need to be paid to recipients.
 
 ```{r}
-west_virginia_undisbursed <- west_virginia_ppp %>% filter(undisbursed_amount > 0)
+west_virginia_undisbursed <- west_virginia_ppp %>% filter(undisbursed_amount > 0) %>% group_by(lender) %>% summarize(total=n())
 
 ```
 
