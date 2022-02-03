@@ -61,6 +61,7 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
   )
 
 *n()* = the number of the summarized function
+*nrow(x)* = number of rows in dataset "x"
 *arrange(x)* = arrange according to a certain property; can have multiple targets to sort by one than the other
   EXAMPLES:
   arrange(desc(count_loans))           - highest number number of loans first
@@ -68,7 +69,7 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
 alphabetically
   arrange(percent_payroll, desc(amount)) - lowest payroll percentage, and within that, highest loan amount - *first column in arrange takes precedent, then second, and so on*
     arrange(desc())                    - highest to lowest
-    arrange(asc())                     - lowest to highest
+    arrange()                          - lowest to highest
     -default-                          - alphabetically
 
 *sum(x)* = sum of numeric values in column "x"
@@ -92,13 +93,15 @@ mutate(
     jobs_retained == 500 ~ '500'
   ) = new column based on ranges of values; similar to if_else but with >2 potential buckets
 )
-  *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works
+  *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works; use *CleanDate = ymd(x)* if there's no time
   *floor_date(x, "y")* = rounds column "x" down to nearest boundary of specified time unit "y"
   *ceiling_date(x, "y")* = rounds column "x" up to nearest boundary of specified time unit "y"
+  *str_to_upper/lower(x)* = change letters in of characters in column "x" to make all letters upper/lowercase
 
 *filter(x [y] z)*:  x = any column name from your dataframe; [y] = some comparison operator (==, >,  <); Z = something to compare the x to
   use /&/ to do more than one filter at once, e.g. <filter(project_county_name == "PRINCE GEORGES" & business_type == "Non-Profit Organization" & amount > 150000)>
   use /|/ to allow for more than one filter criteria, wherein a row that fits any one of the listed filters will be shown, e.g. <filter(project_county_name == "PRINCE GEORGES" | business_type == "Non-Profit Organization" | amount > 150000)>
+  /Look at your data before you filter - names need to be EXACT, including capitalization, to be captured by filters/
 
 
 ## Different Libraries ##
