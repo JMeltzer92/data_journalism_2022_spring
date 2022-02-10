@@ -59,6 +59,8 @@ data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(
   summarise(                           - and summarize it like this:
     count_loans = n()                  - the number of rows (each individual loan) in each county name.
   )
+*get_dupes()* = check for duplicates in first column in dataset
+*distinct()* = find all different valued entries in first column in dataset
 
 *n()* = the number of the summarized function
 *nrow(x)* = number of rows in dataset "x"
@@ -97,14 +99,24 @@ mutate(
   *floor_date(x, "y")* = rounds column "x" down to nearest boundary of specified time unit "y"
   *ceiling_date(x, "y")* = rounds column "x" up to nearest boundary of specified time unit "y"
   *str_to_upper/lower(x)* = change letters in of characters in column "x" to make all letters upper/lowercase
+  *str_to_title(x)* = capitalize the first letter of every word
+  *x=as.character(y)* = change data type of column x to a character with a value of y (can change value with formulas in "y" space); can also change to .numeric, .date, etc...
+  *x = str_sub(x, start=yL, end=zL)* = change length of values in column X to start at Yth "letter" and end at Zth "letter"
+  
+*read_csv("y", guess_max=x* = use only x number of columns to try to guess the data type for each column in dataset y
 
 *filter(x [y] z)*:  x = any column name from your dataframe; [y] = some comparison operator (==, >,  <); Z = something to compare the x to
   use /&/ to do more than one filter at once, e.g. <filter(project_county_name == "PRINCE GEORGES" & business_type == "Non-Profit Organization" & amount > 150000)>
   use /|/ to allow for more than one filter criteria, wherein a row that fits any one of the listed filters will be shown, e.g. <filter(project_county_name == "PRINCE GEORGES" | business_type == "Non-Profit Organization" | amount > 150000)>
   /Look at your data before you filter - names need to be EXACT, including capitalization, to be captured by filters/
+  *is.na(x)* = filter all rows wherein column "x" value is NA; /this is the only way to target NA values, its not a number/
+  
+*clean_names()* = fixes the column headers in a dataset with janitor library
+*rename(x = y)* = changes column header y to new header x
 
 
 ## Different Libraries ##
 
 *lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
 *tidyverse* - group of libraries that makes life easier
+*janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
