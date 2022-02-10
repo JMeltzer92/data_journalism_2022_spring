@@ -39,6 +39,8 @@ ppp_maryland_loans <- read_rds("ppp_maryland.rds")
 *function* [3] computer code that takes in information; follows series of pre-determined steps; spits it back out
 *argument* [4] things put inside of function to customize what the function does
 
+*x ~ y* = if it's x, "then" change it to y
+*^abc* = if it starts with "abc"
 *%>%* = "and then do this"
 *data %>% function* = typical pattern, "take data and do this specific action"
 
@@ -95,13 +97,17 @@ mutate(
     jobs_retained == 500 ~ '500'
   ) = new column based on ranges of values; similar to if_else but with >2 potential buckets
 )
-  *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works; use *CleanDate = ymd(x)* if there's no time
+    (x = y ~ z) = If column x value is y, then change it to z
+    str_detect(x, "^abc") ~ y = if value in column x starts with "abc" then change it to y
+    TRUE ~ x = all other values in column x stay the same
+    
+  *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works; use *CleanDate = ymd(x)* if there's no time; MAKE SURE FILE EXTENSION MATCHES
   *floor_date(x, "y")* = rounds column "x" down to nearest boundary of specified time unit "y"
   *ceiling_date(x, "y")* = rounds column "x" up to nearest boundary of specified time unit "y"
   *str_to_upper/lower(x)* = change letters in of characters in column "x" to make all letters upper/lowercase
   *str_to_title(x)* = capitalize the first letter of every word
   *x=as.character(y)* = change data type of column x to a character with a value of y (can change value with formulas in "y" space); can also change to .numeric, .date, etc...
-  *x = str_sub(x, start=yL, end=zL)* = change length of values in column X to start at Yth "letter" and end at Zth "letter"
+  *x = str_sub(x, start=yL, end=zL)* = change length of values in column X to start at Yth letter character from the left and end at Zth from the left; change to yR and zR to count from the right
   
 *read_csv("y", guess_max=x* = use only x number of columns to try to guess the data type for each column in dataset y
 
