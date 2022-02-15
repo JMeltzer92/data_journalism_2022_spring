@@ -27,6 +27,8 @@ setwd("~target/path/name")
 
 Use /# to make comments like <-- --> in HTML or /* */ in CSS
 
+**FILTER > GROUP_BY > SUMMARIZE > ARRANGE** - general flow for R
+
 Making a code block always looks like:
 ```{r}
 
@@ -100,6 +102,7 @@ mutate(
     (x = y ~ z) = If column x value is y, then change it to z
     str_detect(x, "^abc") ~ y = if value in column x starts with "abc" then change it to y
     TRUE ~ x = all other values in column x stay the same
+  *across(x, as.y)* = change character type of column x to type y
     
   *CleanDate = ymd_hms(x)* - /lubridate only/ = parse dates more accurately without extra code - *read_csv* (instead of read_csv) also works; use *CleanDate = ymd(x)* if there's no time; MAKE SURE FILE EXTENSION MATCHES
   *floor_date(x, "y")* = rounds column "x" down to nearest boundary of specified time unit "y"
@@ -119,6 +122,13 @@ mutate(
   
 *clean_names()* = fixes the column headers in a dataset with janitor library
 *rename(x = y)* = changes column header y to new header x
+
+*bind_rows(list(x,y,z))* = combine datasets x, y and z to compare trends over time - must have exact same formatting
+*x %>% left_join(y, by="z")* = join dataset x with datset y according to value in column z, while eliminating non-matching rows
+  EXAMPLE
+  maryland_ppp_with_naics %>% left_join(maryland_zcta, by=c("zip"="ZCTA5N"))
+    merge ppp_with_naics with zcta, using different named columns zip and ZCTA5N
+*x %>% right_join(y, by="z")* = join dataset x with dataset y according to values in column z, while still displaying rows that didnt have matching values
 
 
 ## Different Libraries ##

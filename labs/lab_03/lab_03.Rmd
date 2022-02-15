@@ -37,7 +37,8 @@ Note: To answer this question, you'll need to see every variation of the "city" 
 A1: Charleston (2802), South Charleston (478), Saint Albans (296), Dunbar (162), Nitro (140)
 ```{r}
 
-kanawha_ppp_loans <- wv_ppp_loans %>% filter(project_county_name == "KANAWHA") %>% 
+kanawha_ppp_loans <- wv_ppp_loans %>%
+  filter(project_county_name == "KANAWHA") %>% 
   mutate(city = str_to_title(city)) %>% 
   mutate(city = case_when(
       str_detect(city, "^St") ~ "Saint Albans",
@@ -74,7 +75,8 @@ wv_zip_loans <- wv_ppp_loans %>%
 
 wv_ppp_loans %>% 
   mutate(zip = str_sub(zip, start=1L, end=5L)) %>%
-  filter(zip == "25301")
+  filter(zip == "25301") %>% 
+  arrange (desc(amount))
 ```
 
 Q3: Five business entities owned by the spouse of a member of West Virginia's U.S. House delegation got PPP loans. Write up a paragraph that answers the following questions.   
