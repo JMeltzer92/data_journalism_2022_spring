@@ -141,8 +141,8 @@ All three of these areas do not have residential space (their combined populatio
 
 ```{r}
 maryland_ppp_naics_zcta %>% 
-  filter(race=="Asian" & PNHA ==0) %>% 
-  group_by(zip5,PNHA) %>% 
+  filter(race=="Asian" & NHA ==0) %>% 
+  group_by(zip5,NHA) %>% 
   summarize(
     total_loans=sum(amount),
     count_loans=n()
