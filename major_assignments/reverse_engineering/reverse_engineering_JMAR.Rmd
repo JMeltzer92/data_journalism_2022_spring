@@ -25,7 +25,8 @@ In this notebook, we are reverse engineering the story, [As police struggle to s
 Loading required libraries for this analysis.
 
 ```{r echo=FALSE, message=FALSE}
-
+library(tidyverse)
+library(lubridate)
 ```
 
 ## Load and Cleaning Data
@@ -39,6 +40,19 @@ In this section, describe the source of the data, write a basic data dictionary 
 
 # Clean required data and prepare for analysis if needed. 
 
+homicide_data <- read_csv('data/homicide-data.csv')
+
+homicide_data <- homicide_data %>% 
+  mutate(
+    reported_date=as_date(ymd(reported_date))
+  )
+
+glimpse(homicide_data)
+
+baltimore_homicide_data <- homicide_data %>% 
+  filter (
+    city == 'Baltimore'
+  )
 
 ```
 
@@ -47,19 +61,37 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 1
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: City police made an arrest in 41 percent of homicides in 2014; last year, the rate was just 27 percent, a 14 percentage point drop.
+* **Analysis summary**: After we successfully filtered and grouped the data in the years 2014 and 2017, we added all the murders up (112+86+13=211 for 2014, 236+93+11=340 for 2017), then divided the "Closed with Arrest" murders by the total murders for each year (86/211 and 93/340, respectively). This gave us a 40.75% arrest rate for 2014, and 27.35% for 2017. This correlates to a 14 percentage point drop, as they found in the original article. 
 
 ```{r}
-# Put code to reverse engineer sentence here
+baltimore_homicide_data %>% 
+  filter (
+    reported_date >= "2014-01-01" & 
+    reported_date < "2015-01-01") %>% 
+  group_by(disposition) %>% 
+  summarize(
+    count_murders=n()
+  ) %>% 
+  arrange(desc(count_murders))
 
-# Display results of code below this codeblock
+
+baltimore_homicide_data %>% 
+  filter (
+    reported_date >= "2017-01-01" &
+    reported_date < "2018-01-01"
+  ) %>% 
+  group_by(disposition) %>% 
+  summarize(
+    count_murders=n()
+  ) %>% 
+  arrange(desc(count_murders))
 
 ```
 
 ### Sentence 2
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: As violence in the city has risen since 2015, the likelihood of a killer being arrested has dropped precipitously.
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
@@ -71,7 +103,7 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 3
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: Of the 1,002 homicides between 2015 and the beginning of this year, just 252 — one out of every four — resulted in an arrest.
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
@@ -83,7 +115,7 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 4
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: For most of the decade before 2015, Baltimore’s annual homicide arrest rate hovered at about 40 percent. Since 2015, the arrest rate hasn’t topped 30 percent in any year
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
@@ -95,7 +127,7 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 5
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: Baltimore is also one of 30 cities that have seen an increase in homicides in recent years, with the greatest raw number increase in killings of any city other than Chicago, which has four times the population.
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
