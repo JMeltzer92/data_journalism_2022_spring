@@ -130,9 +130,44 @@ mutate(
     merge ppp_with_naics with zcta, using different named columns zip and ZCTA5N
 *x %>% right_join(y, by="z")* = join dataset x with dataset y according to values in column z, while still displaying rows that didnt have matching values
 
+*c(x,y,z)* = combine items x, y, and z into a list
+
+## Web Scraping! ##
+
+x %>% *read_html()* = read html from url "x"
+x %>% read_html() %>% *html_table()* = extract and convert all html tables from url "x"
+  - if multiple tables are extracted from a webpage, they will all be saved in the element created a la [[1]] [[2]] [[3]] etc
+  - you can save a specific table from a list by doing y <- x[[2]], which will make "y" the 2nd table scrubbed from webpage "x"
+y %>% read_html() %>% *html_element(xpath = x)* = grab the html element "x" from url "y" and get rid of everything else
+*slice(x)* = remove all rows _except_ x
+*slice(-x)* = remove row x
+*slice(c(x,y))* = remove all rows _except_ x & y
+*slice(-c(x,y))* = remove rows x & y
+
+## Loop Hero ##
+
+for (x in y) {
+  function(x)                 
+}
+
+- The information inside the parentheses tells R what list to use -- "y" -- and how to identify list elements later on -- "x". Note - "y" has to be the exact name of the list you want to use. Make sure "x" is called the same thing in both places, as well.
+- R will then perform function on each "x" in list "y".
+
+for (number in 1:10) {
+  function(number)
+}
+
+- This does the same thing as the above, but is specifically for iterating numbers.
+- This is very useful for large tables, in the following manner: 1:nrow will repeat the function for each row in your table from 1 until the end.
+
+mutate(x = *paste0*("https://www.bls.gov/iag/tgs/iag",y,".htm"))
+  - This is a weird one but super useful. So, we're creating a new column called "x," and the value is going to be a url. The only part of the URL that changes in each row will be inside ",,", and that will be equal to the value in column "y" for each row. Make sense? Yes. SHUT UP YES IT DOES.
+  
+x %>% ... %>% *bind_cols(y)* = after you're done modifying dataset x, apend the appropriate columns from dataset y to the end of each column
 
 ## Different Libraries ##
 
 *lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
 *tidyverse* - group of libraries that makes life easier
 *janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
+*rvest* - web scraping! Allah preserve us

@@ -34,12 +34,6 @@ library(lubridate)
 In this section, describe the source of the data, write a basic data dictionary for data you are working with, and discuss any caveats or issues you discovered working with this data. 
 
 ```{r}
-# Load required data
-
-# Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
-
-# Clean required data and prepare for analysis if needed. 
-
 homicide_data <- read_csv('data/homicide-data.csv')
 
 homicide_data <- homicide_data %>% 
@@ -92,25 +86,50 @@ baltimore_homicide_data %>%
 ### Sentence 2
 
 * **Sentence text**: As violence in the city has risen since 2015, the likelihood of a killer being arrested has dropped precipitously.
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Analysis summary**: We do see the Post's results replicated by our code. The number of arrests categorized as "Open" or "Closed without arrest" jumps sharply in 2015 and stays high through the end of 2017.
 
 ```{r}
-# Put code to reverse engineer sentence here
+baltimore_homicides_by_year <- baltimore_homicide_data %>% 
+  mutate(
+    year = case_when(
+      reported_date < '2008-01-01' ~ '2007',
+      reported_date >= '2008-01-01' & reported_date < '2009-01-01' ~ '2008',
+      reported_date >= '2009-01-01' & reported_date < '2010-01-01' ~ '2009',
+      reported_date >= '2010-01-01' & reported_date < '2011-01-01' ~ '2010',
+      reported_date >= '2011-01-01' & reported_date < '2012-01-01' ~ '2011',
+      reported_date >= '2012-01-01' & reported_date < '2013-01-01' ~ '2012',
+      reported_date >= '2013-01-01' & reported_date < '2014-01-01' ~ '2013',
+      reported_date >= '2014-01-01' & reported_date < '2015-01-01' ~ '2014',
+      reported_date >= '2015-01-01' & reported_date < '2016-01-01' ~ '2015',
+      reported_date >= '2016-01-01' & reported_date < '2017-01-01' ~ '2016',
+      reported_date >= '2017-01-01' ~ '2017'
+    )
+  )
 
-# Display results of code below this codeblock
+baltimore_yearly_arrest_rate <- baltimore_homicides_by_year %>% 
+  group_by(year,disposition) %>% 
+  summarize(
+    count_homicides=n()
+  )
 
+show(baltimore_yearly_arrest_rate)
 ```
 
 ### Sentence 3
 
 * **Sentence text**: Of the 1,002 homicides between 2015 and the beginning of this year, just 252 — one out of every four — resulted in an arrest.
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Analysis summary**: We were able to replicate the Post's findings for this. Of all the homicides reported after 2018, our filter and group by queries showed that there were 252 closed by arrest out of a total of 1002. It's not exactly 1 in 4, but it's close.
 
 ```{r}
-# Put code to reverse engineer sentence here
-
-# Display results of code below this codeblock
-
+baltimore_homicide_data %>% 
+  filter(
+    reported_date > '2015-01-01'
+  ) %>% 
+  group_by(disposition) %>% 
+  summarize(
+    count_homicides=n()
+  ) %>% 
+    arrange(count_homicides)
 ```
 
 ### Sentence 4
@@ -119,9 +138,7 @@ baltimore_homicide_data %>%
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
-# Put code to reverse engineer sentence here
-
-# Display results of code below this codeblock
+baltimore_yearly_arrests_transposed <- as.data.frame(t(baltimore_yearly_arrest_rate))
 
 ```
 
