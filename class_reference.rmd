@@ -49,6 +49,7 @@ ppp_maryland_loans <- read_rds("ppp_maryland.rds")
 data %>% group_by(COLUMN NAME) %>% summarize(VARIABLE NAME = AGGREGATE FUNCTION(COLUMN NAME))
 
 ## Functions & Commands
+
 *glimpse(x)* = list of the columns, the data type for each column, first few values for each column
 *head(x)* = print out columns & first six rows of data
 *head(x)* = first 6 rows of dataset x
@@ -132,7 +133,7 @@ mutate(
 
 *c(x,y,z)* = combine items x, y, and z into a list
 
-## Web Scraping! ##
+## Web Scraping!
 
 x %>% *read_html()* = read html from url "x"
 x %>% read_html() %>% *html_table()* = extract and convert all html tables from url "x"
@@ -144,7 +145,7 @@ y %>% read_html() %>% *html_element(xpath = x)* = grab the html element "x" from
 *slice(c(x,y))* = remove all rows _except_ x & y
 *slice(-c(x,y))* = remove rows x & y
 
-## Loop Hero ##
+## Loop Hero
 
 for (x in y) {
   function(x)                 
@@ -165,9 +166,36 @@ mutate(x = *paste0*("https://www.bls.gov/iag/tgs/iag",y,".htm"))
   
 x %>% ... %>% *bind_cols(y)* = after you're done modifying dataset x, apend the appropriate columns from dataset y to the end of each column
 
-## Different Libraries ##
+## Using APIs - US Census
+
+*load_variables(x, "y", cache = TRUE)* = load census dataset y from year x
+  Datasets:
+    sf1, sf3 - decennial census
+    acs1, acs3, acs5 - annual census surveys
+*get_decennial(geography = "x", variables = "y", year = z)* = load datatframe, where x is geographic area [state, county, place, tract, block], y is the specific dataframe from the sf/acs you loaded, and z is the year
+*get_acs()* = same as above, but for annual surveys
+  ALL ARGUMENTS
+    geography	= The geography of your data.
+    variables = Character string or vector of character strings of variable IDs.
+    table = The Census table for which you would like to request all variables. Uses lookup tables to identify the variables; performs faster when variable table already exists through load_variables(cache = TRUE). Only one table may be requested per call.
+    cache_table = Whether or not to cache table names for faster future access. Defaults to FALSE; if TRUE, only needs to be called once per dataset. If variables dataset is already cached via the load_variables function, this can be bypassed.
+    year = The year for which you are requesting data. Defaults to 2010; 2000, 2010, and 2020 are available.
+    sumfile = The Census summary file. Defaults to sf1; the function will look in sf3 if it cannot find a variable in sf1.
+    state = The state for which you are requesting data. State names, postal codes, and FIPS codes are accepted. Defaults to NULL.
+    county = The county for which you are requesting data. County names and FIPS codes are accepted. Must be combined with a value supplied to `state`. Defaults to NULL.
+    geometry = if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses the tigris package to return an sf tibble with simple feature geometry in the `geometry` column. state, county, tract, and block group are supported for 2000 through 2020; block and ZCTA geometry are supported for 2000 and 2010.
+    output = One of "tidy" (the default) in which each row represents an enumeration unit-variable combination, or "wide" in which each row represents an enumeration unit and the variables are in the columns.
+    keep_geo_vars = if TRUE, keeps all the variables from the Census shapefile obtained by tigris. Defaults to FALSE.
+    shift_geo = (deprecated) if TRUE, returns geometry with Alaska and Hawaii shifted for thematic mapping of the entire US. Geometry was originally obtained from the albersusa R package. As of May 2021, we recommend using tigris::shift_geometry() instead.
+    summary_var	= Character string of a "summary variable" from the decennial Census to be included in your output. Usually a variable (e.g. total population) that you'll want to use as a denominator or comparison.
+    key = Your Census API key. Obtain one at https://api.census.gov/data/key_signup.html
+    show_call	= if TRUE, display call made to Census API. This can be very useful in debugging and determining if error messages returned are due to tidycensus or the Census API. Copy to the API call into a browser and see what is returned by the API directly. Defaults to FALSE.
+
+
+## Different Libraries
 
 *lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
 *tidyverse* - group of libraries that makes life easier
 *janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
 *rvest* - web scraping! Allah preserve us
+*tidycensus* - API tool for the US Census
