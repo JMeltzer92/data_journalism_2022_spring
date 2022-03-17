@@ -1,0 +1,139 @@
+---
+title: "lab_08"
+author: "derek willis"
+date: "8/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+* A Census API key
+
+## Load libraries and establish settings
+
+You'll need to load two packages for this: the tidyverse and tidycensus.
+
+**Task** load these two packages
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+# libraries
+library(tidyverse)
+library(tidycensus)
+```
+
+## Setup Census API
+
+You'll need your Census API Key:
+
+**Task** set your API Key
+
+```{r echo=FALSE}
+census_api_key("f8e7aaa533960f65ac1cfae1172795589384eb48", install=TRUE)
+```
+
+## Load and view ACS variables
+
+You'll also need to load the list of American Community Survey variables from the 2019 5-year estimates so you can identify the codes you need:
+
+**Task** load the variables from the 2019 5-year ACS and save them to a dataframe
+
+```{r}
+acs <- load_variables(2019, "acs5", cache = TRUE)
+```
+
+## Load PPP data
+
+You'll also need to load an RDS file of PPP loan applications that were removed from the original data by lenders in July.
+
+**Task** read the RDS file and save it to a dataframe
+
+```{r}
+ppp_july <- read_rds("data/lab_08.rds")
+```
+
+## Answer questions
+
+**Q1** What is the Maryland jurisdiction with the lowest median age, according to the ACS 2019 5-year estimates? You will need to find the variable for median age first in your list of ACS variables.
+**A1**
+Baltimore City has the lowest median age at 35.4 +- 0.2 years.
+```{r}
+md_age <- get_acs(geography = "county", variables = "B01002_001", state = "MD",year = 2019)
+```
+
+**Q2** Which Maryland counties have a median age of at least 50? Write code to isolate just those jurisdictions.
+**A2**
+Talbot and Worcester Counties.
+```{r}
+md_over_50 <- md_age %>% 
+  filter(estimate >= 50)
+
+md_over_50
+```
+
+**Q3** Which Maryland counties have the highest percentage of 5-17 year-olds that speak Spanish at home? You'll need one dataframe with county-level data on the number of 5-17 year-olds that speak Spanish at home and a second dataframe with the total population of 5-17 year-olds by county. For each dataframe, rename the `estimate` column to a meaningful name you've given the ACS variable, remove the `variable` columns in each using select and then join them based on GEOID and NAME. Then you can add a column to calculate the percentage of the total 5-17 population that speaks Spanish at home.
+**A3**
+Prince George's County, with 21.3% of 5 to 17 year olds speaking Spanish.
+```{r}
+span_speak <- get_acs(geography = "county", variables = "B16008_005", state = "MD", year = 2019) %>% 
+  rename(span_speakers = estimate) %>% 
+  select (GEOID, NAME, span_speakers, moe)
+
+md_minors <- get_acs(geography = "county", variables = "B06001_003", state = "MD", year = 2019) %>% 
+  rename(minors = estimate) %>% 
+  select (GEOID, NAME, minors, moe)
+
+span_new <- inner_join(span_speak, md_minors, by = c("GEOID", "NAME")) %>% 
+  mutate(pct = span_speakers/minors) %>% 
+  arrange(desc(pct))
+
+span_new
+```
+
+**Q4** Given the counties with the largest percentage of 5-17 year-olds that speak Spanish at home, what stands out to you about the data? How would you describe the top 5 counties? How would you describe Garrett County's numbers?
+**A4**
+There are two major areas of concentration: around D.C., and across the bay in one of the state's agricultural "bread baskets." I know that there is are crab-picking and farming industries with a disproportionately Latino workforce in the Caroline/Dorchester/Tablot county area, but would need to do more research to verify this. Garrett County is basically in West Virginia, and the number of Spanish speakers there is basically non-existent. That part of Maryland is known for being overwhelmingly white and conservative, i.e. no a very receptive environment for minority populations.
+
+**Q5** Which 5-digit zip code had the most removed PPP applications, and what is the percentage of Black population in that zip code according to the ACS? To answer this question, you will need to create separate dataframes with ACS data on total population by zip code and Black population by zip code. In each dataframe, rename the `estimate` column and remove the `variable` column. You'll need to combine the two dataframes in order to calculate the percentage, and then you can combine it with the PPP data. Remember: the PPP data may not have only 5-digit zip codes!
+**A5**
+20774 had 29 loans removed, and has a population that is 88.1% Black.
+```{r}
+total_pop <- get_acs(geography = "zcta", variable = "B01001_001", state = "MD", year = 2019) %>% 
+  rename(pop = estimate) %>% 
+  select(GEOID, NAME, pop, moe)
+
+black_pop <- get_acs(geography = "zcta", variable = "B01001B_001", state = "MD", year = 2019) %>% 
+  rename(black = estimate) %>% 
+  select(GEOID, NAME, black, moe)
+
+pct_black <- inner_join(total_pop, black_pop, by=c("GEOID", "NAME")) %>% 
+  mutate(pct = black/pop) %>% 
+  rename(zip = GEOID) %>% 
+  select(zip, pop, moe.x, black, moe.y, pct) %>% 
+  arrange(desc(pct))
+
+ppp_july <- ppp_july %>%
+  filter(state == "MD") %>% 
+  mutate(
+    zip = str_sub(zip, 1, 5)
+  )
+```
+```{r}
+loans_removed <- inner_join(pct_black, ppp_july, by="zip") %>% 
+  group_by(zip,pct) %>% 
+  summarise(count_loans=n()) %>% 
+  arrange(desc(count_loans))
+```
+
+**Q6** How would you describe to an editor the top 10 zip codes with the most removed applications in terms of Black population? Where are they located, and what do they have in common? Are there any zip codes that seem different, and if so why?
+**A6**
+All but three of the top 10 counties by loans removed have a majority Black population. All but one have a Black population of over 40%. All of these ZIP codes are concentrated in either PG County or in the Baltimore metropolitan area. The 10th ranked ZIP code is in the Middle River area east of Baltimore, and is significantly whiter than the rest, but is still a part of the greater Baltimore area.
+
+**Q7** What other columns from the PPP data could be useful in reporting on what happened to these removed loans?
+**A7**
+There is potential for stories in all of these columns, in my opinion. If I had to pick a few, though... I think sorting by Business Type could provide some interesting insight into the types of organizational structures that were favored or disfavored by PPP loans. Grouping by servicing lender could also be interesting, to see if an individual lender is over-represented. Rural/urban could expose differences in how the contemporary cultural divide affects things, grouping by in-state vs. out of state lenders... Loan status would show which loans were dropped for which reasons. There's a lot of juice here, depending on what angle you want to take. 
