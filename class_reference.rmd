@@ -191,11 +191,32 @@ x %>% ... %>% *bind_cols(y)* = after you're done modifying dataset x, apend the 
     key = Your Census API key. Obtain one at https://api.census.gov/data/key_signup.html
     show_call	= if TRUE, display call made to Census API. This can be very useful in debugging and determining if error messages returned are due to tidycensus or the Census API. Copy to the API call into a browser and see what is returned by the API directly. Defaults to FALSE.
 
+## Data Visualization
+
+*ggplot()* = make a visualization - but we need more input
+    $Inside$ - use "+" instead of "%>%"
+*geom_bar* = make a bar chart
+*geom_line* = make a line graph
+*coord_flip* = flip axes in the chart
+*theme_minimal* = minimalist theme :O
+*scale_x_date* = scale dates on x axis
+  *date_breaks= "x"* = set date breaks to every x unit of time
+  *date_labels= "x"* = format date labels as x
+    $Capital Letter$ = full length, e.g. %Y -> 2022, %B -> January
+    $Lowercase Letter$ = abbreviated, e.g. %y -> '22, %b -> Jan
+
+A E S T H E T I C
+*aes(x)* = apply the following aesthetic changes to the visualization
+  *reorder(x,y,z)* = reorder variables in the sequence of x, y, z
+  *weight=x* = set height of bar to variable x
+  
+(https://yutannihilation.github.io/allYourFigureAreBelongToUs/ggthemes/) > all the different themes you can add
 
 ## Different Libraries
 
 *lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
 *tidyverse* - group of libraries that makes life easier
+*ggthemes* - themes for data visualizations
 *janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
 *rvest* - web scraping! Allah preserve us
 *tidycensus* - API tool for the US Census
