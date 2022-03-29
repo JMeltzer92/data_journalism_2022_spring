@@ -91,20 +91,7 @@ baltimore_homicide_data %>%
 ```{r}
 baltimore_homicides_by_year <- baltimore_homicide_data %>% 
   mutate(
-    year = case_when(
-      reported_date < '2008-01-01' ~ '2007',
-      reported_date >= '2008-01-01' & reported_date < '2009-01-01' ~ '2008',
-      reported_date >= '2009-01-01' & reported_date < '2010-01-01' ~ '2009',
-      reported_date >= '2010-01-01' & reported_date < '2011-01-01' ~ '2010',
-      reported_date >= '2011-01-01' & reported_date < '2012-01-01' ~ '2011',
-      reported_date >= '2012-01-01' & reported_date < '2013-01-01' ~ '2012',
-      reported_date >= '2013-01-01' & reported_date < '2014-01-01' ~ '2013',
-      reported_date >= '2014-01-01' & reported_date < '2015-01-01' ~ '2014',
-      reported_date >= '2015-01-01' & reported_date < '2016-01-01' ~ '2015',
-      reported_date >= '2016-01-01' & reported_date < '2017-01-01' ~ '2016',
-      reported_date >= '2017-01-01' ~ '2017'
-    )
-  )
+    year = year(reported_date))
 
 baltimore_yearly_arrest_rate <- baltimore_homicides_by_year %>% 
   group_by(year,disposition) %>% 
@@ -135,23 +122,65 @@ baltimore_homicide_data %>%
 ### Sentence 4
 
 * **Sentence text**: For most of the decade before 2015, Baltimore’s annual homicide arrest rate hovered at about 40 percent. Since 2015, the arrest rate hasn’t topped 30 percent in any year
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Analysis summary**: We were able to find the same results as the Washington Post. The homicide arrest rate, or homicides "closed by arrest" divided by total homicides for each year, did hover around 40% from 2005 to 2015, and then stays below 30% after 2015.
 
 ```{r}
-baltimore_yearly_arrests_transposed <- as.data.frame(t(baltimore_yearly_arrest_rate))
+baltimore_yearly_homicides <- baltimore_homicides_by_year %>% 
+  group_by(year) %>% 
+  summarize(
+    count_homicides=n()
+  )
 
+baltimore_rate <- baltimore_yearly_arrest_rate %>% 
+  left_join(baltimore_yearly_homicides, by="year") %>% 
+  filter(
+    disposition == "Closed by arrest"
+  ) %>% 
+  mutate(
+    rate=(count_homicides.x/count_homicides.y)*100
+  )
 ```
 
 ### Sentence 5
 
 * **Sentence text**: Baltimore is also one of 30 cities that have seen an increase in homicides in recent years, with the greatest raw number increase in killings of any city other than Chicago, which has four times the population.
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Analysis summary**: We used ggplot on a few cities to make sure there was indication of an increase in total homicides across the country, which there is. This is where it gets tricky: the language the Post uses is vague. "The greatest raw number increase in killings" since when? Our data shows both Baltimore and Chicago total murders soaring in the 2014-2016 period, but it seems that the journalists chose somewhat vague language instead painting an exact picture, which may have been very wordy.
 
 ```{r}
-# Put code to reverse engineer sentence here
-
-# Display results of code below this codeblock
-
+homicide_by_city <- homicide_data %>%
+    mutate(
+      year = year(reported_date)
+    ) %>% 
+  group_by(city, year) %>% 
+  summarise(total_homicides=n())
 ```
-
--30-
+```{r}
+homicide_by_city %>% 
+  filter(city=="Baltimore") %>% 
+  ggplot() + 
+  geom_line(aes(x=year,y=total_homicides))
+```
+```{r}
+homicide_by_city %>% 
+  filter(city=="Chicago") %>% 
+  ggplot() + 
+  geom_line(aes(x=year,y=total_homicides))
+```
+```{r}
+homicide_by_city %>% 
+  filter(city=="Albuquerque") %>% 
+  ggplot() + 
+  geom_line(aes(x=year,y=total_homicides))
+```
+```{r}
+homicide_by_city %>% 
+  filter(city=="Los Angeles") %>% 
+  ggplot() + 
+  geom_line(aes(x=year,y=total_homicides))
+```
+```{r}
+homicide_by_city %>% 
+  filter(city=="Los Angeles") %>% 
+  ggplot() + 
+  geom_line(aes(x=year,y=total_homicides))
+```
