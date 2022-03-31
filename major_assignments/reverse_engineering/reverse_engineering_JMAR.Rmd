@@ -144,43 +144,27 @@ baltimore_rate <- baltimore_yearly_arrest_rate %>%
 ### Sentence 5
 
 * **Sentence text**: Baltimore is also one of 30 cities that have seen an increase in homicides in recent years, with the greatest raw number increase in killings of any city other than Chicago, which has four times the population.
-* **Analysis summary**: We used ggplot on a few cities to make sure there was indication of an increase in total homicides across the country, which there is. This is where it gets tricky: the language the Post uses is vague. "The greatest raw number increase in killings" since when? Our data shows both Baltimore and Chicago total murders soaring in the 2014-2016 period, but it seems that the journalists chose somewhat vague language instead painting an exact picture, which may have been very wordy.
+* **Analysis summary**: We used ggplot on all of the cities in our dataframe to make sure there was indication of an increase in total homicides across the country, which there is for 30 of the line segments shown. This is where it gets tricky: the language the Post uses is inexact. "The greatest raw number increase in killings" since when? Our data shows both Baltimore and Chicago total murders soaring in the 2014-2016 period, but other cities among the 30 have homicides increase at different times and at different rates. While we wouldn't call this disingenuous, it does seem that the journalists chose somewhat vague language instead painting an exact picture, which, in their defense, may have been very wordy.
 
 ```{r}
 homicide_by_city <- homicide_data %>%
     mutate(
-      year = year(reported_date)
-    ) %>% 
+      year = year(reported_date),
+      city = gsub("\\s", "_", tolower(city))
+    ) %>%
   group_by(city, year) %>% 
   summarise(total_homicides=n())
 ```
+## Try Pivoting
 ```{r}
-homicide_by_city %>% 
-  filter(city=="Baltimore") %>% 
-  ggplot() + 
-  geom_line(aes(x=year,y=total_homicides))
+is_it_on <- homicide_by_city %>% 
+  pivot_wider(names_from = city, values_from = total_homicides) %>% 
+  arrange(desc(year))
 ```
+
+## Line Plot
+
 ```{r}
 homicide_by_city %>% 
-  filter(city=="Chicago") %>% 
-  ggplot() + 
-  geom_line(aes(x=year,y=total_homicides))
-```
-```{r}
-homicide_by_city %>% 
-  filter(city=="Albuquerque") %>% 
-  ggplot() + 
-  geom_line(aes(x=year,y=total_homicides))
-```
-```{r}
-homicide_by_city %>% 
-  filter(city=="Los Angeles") %>% 
-  ggplot() + 
-  geom_line(aes(x=year,y=total_homicides))
-```
-```{r}
-homicide_by_city %>% 
-  filter(city=="Los Angeles") %>% 
-  ggplot() + 
-  geom_line(aes(x=year,y=total_homicides))
+  ggplot(aes(x=year, y=total_homicides, color=city)) + geom_line() + geom_point()
 ```
