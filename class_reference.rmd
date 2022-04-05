@@ -212,6 +212,11 @@ A E S T H E T I C
   
 (https://yutannihilation.github.io/allYourFigureAreBelongToUs/ggthemes/) > all the different themes you can add
 
+## Other tricks
+
+*str_c(x, y)* = concatenates elements into a single string "xy"
+  ex: str_c(state_code, county_code) -> 24001
+
 ## Different Libraries
 
 *lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
@@ -220,3 +225,4 @@ A E S T H E T I C
 *janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
 *rvest* - web scraping! Allah preserve us
 *tidycensus* - API tool for the US Census
+*tigris* - has a FIPS code table in it
