@@ -85,7 +85,7 @@ alphabetically
 *min(x)/max(x)* = lowest/highest value in column "x"
 
 *mutate(x = y)* = create new column "x" with a value (typically a function) of "y"
-  mutate(percent_payroll = payroll_proceed/amount)*100 - find out what percent of each loan went towards payroll by dividing the raw amount sent to payroll by the total loan, and multiply by 100
+  mutate(percent_payroll = (payroll_proceed/amount)*100) - find out what percent of each loan went towards payroll by dividing the raw amount sent to payroll by the total loan, and multiply by 100
   mutate(in_out = *if_else*(
     servicing_lender_state == 'MD', "IN", "OUT"
   ) = make new column "in_out" saying if s_l_s is or isn't in Maryland, remember double *==*
