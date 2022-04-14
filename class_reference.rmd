@@ -131,7 +131,7 @@ mutate(
     merge ppp_with_naics with zcta, using different named columns zip and ZCTA5N
 *x %>% right_join(y, by="z")* = join dataset x with dataset y according to values in column z, while still displaying rows that didnt have matching values
 
-*c(x,y,z)* = combine items x, y, and z into a list
+*c(x,y,z)* = combine items x, y, and z into a list test
 
 ## Web Scraping!
 
@@ -211,6 +211,10 @@ A E S T H E T I C
   *weight=x* = set height of bar to variable x
   
 (https://yutannihilation.github.io/allYourFigureAreBelongToUs/ggthemes/) > all the different themes you can add
+
+## Mapping
+
+
 
 ## Other tricks
 
