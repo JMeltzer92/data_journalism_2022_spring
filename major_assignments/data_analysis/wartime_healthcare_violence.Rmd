@@ -21,11 +21,16 @@ library(lubridate)
 
 ```{r}
 # ACLED
-acled_afg <- read_csv("data/afghanistan_2001_2021.csv")
-acled_ira <- read_csv("data/iraq_2002_present.csv")
-acled_isr <- read_csv("data/israel-palestine_2001_present.csv")
-acled_syr <- read_csv("data/syria_2010_present.csv")
-acled_ukr <- read_csv("data/ukraine_2013_present.csv")
+acled_afg <- read_csv("data/afghanistan_2001_2021.csv") %>% 
+    mutate(event_date=dmy(event_date))
+acled_ira <- read_csv("data/iraq_2002_present.csv") %>% 
+    mutate(event_date=dmy(event_date))
+acled_isr <- read_csv("data/israel-palestine_2001_present.csv") %>% 
+    mutate(event_date=dmy(event_date))
+acled_syr <- read_csv("data/syria_2010_present.csv") %>% 
+    mutate(event_date=dmy(event_date))
+acled_ukr <- read_csv("data/ukraine_2013_present.csv") %>% 
+    mutate(event_date=dmy(event_date))
 # WHO
 who_afg <- read_csv("data/WHO_Afghanistan 2001.csv")
 who_ira <- read_csv("data/WHO_Iraq_2002.csv")
@@ -119,3 +124,49 @@ ukr_civ_anon <- acled_ukr %>%
 
 ```
 
+## Raqqa - filter
+
+```{r}
+raqqa <- acled_syr %>% 
+  filter(
+    str_detect(location, "^Ar-Raqqa") &
+    event_date >= "2016-11-06" &
+    event_date < "2017-10-20" &
+    event_type == "Violence against civilians"
+  )
+```
+
+## Mosul - filter
+
+```{r}
+mosul <- acled_ira %>% 
+  filter(
+    str_detect(location, "^Mosul") &
+    event_date >= "2016-10-16" &
+    event_date < "2017-07-20" &
+    event_type == "Violence against civilians"
+  )
+```
+
+## Mariupol - filter
+
+```{r}
+mariu <- acled_ukr %>% 
+  filter(
+    str_detect(location, "Mariupol") &
+    event_date >= "2022-02-24" &
+    event_type == "Violence against civilians"
+  )
+```
+
+## NOTES - Deliverable 1
+
+We have begun to clean and comb through our datasets. It is becoming apparent that we will need to take different tacks for the different datasets, but we can use both to tell different parts of the same story.
+
+The WHO data shows us that Ukraine has seen an inordinate number of instances of violence against healthcare workers and facilities. However, the WHO data does not go back far enough for us to compare it to other conflicts still in their early stages. The Syrian Civil War started in 2011, Iraq in 2003 and Afghanistan in 2001, but our data (in both databases) does not go back that far.
+
+Since we cannot accurately compare the entirety of the conflicts in question, we can use individual battles to see what trends emerge. Mariupol, ongoing, seems a good candidate for comparison to flashpoints like Raqqa in Syria and Mosul in Iraq (both 2016-2017). Other large concentrations of civilian casualties may provide other useful comparisons, like flareups in Israel/Palestine.
+
+Graphing and visualization will be a big part of this project. We will track the number of civilian casualties over time using ACLED data, and then exmine how the WHO data correlates to those trends. Do mass civilian casualties coincide with attacks on healthcare facilities? Is there an uptick civilian casualties seen after the destruction of hospitals and clinics? At what point in urban battles do more imprecise methods of battle appear, resulting in more civilian casualties?
+
+There is no shortage of datapoints to analyze - overall we have hundreds of thousands of instances catalogued. What will be difficult is determining which are civilian casualties, and which are between armed combatants. Simply "violence against civilians" won't do - that categorization is reserved for intentional targeting of noncombatants. Drone strikes and artillery shelling will account for much of the civilian deaths in an urban combat scenario. 
