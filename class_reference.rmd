@@ -220,6 +220,11 @@ A E S T H E T I C
 
 *str_c(x, y)* = concatenates elements into a single string "xy"
   ex: str_c(state_code, county_code) -> 24001
+*!* = use when filtering to get rid of things, e.g. filter(!is.na(x)) -> filter out all entries with is.na value in column x
+  
+## Automation
+
+
 
 ## Different Libraries
 
