@@ -171,6 +171,16 @@ Graphing and visualization will be a big part of this project. We will track the
 
 There is no shortage of datapoints to analyze - overall we have hundreds of thousands of instances catalogued. What will be difficult is determining which are civilian casualties, and which are between armed combatants. Simply "violence against civilians" won't do - that categorization is reserved for intentional targeting of noncombatants. Drone strikes and artillery shelling will account for much of the civilian deaths in an urban combat scenario. 
 
+WHO limitations:
+
+WHO Afghanistan data - only goes back to 2017
+
+WHO Iraq data - ONLY has 2018 data
+
+WHO Syria data - only goes back to 2018
+
+WHO Ukraine data - only goes back to 2018; ongoing so some things may not be confirmed
+
 ## Q1 - Is violence against healthcare workers specific to Russia, or just typical of any war?
 
 Zooming in on urban conflict in Mariupol (UKR), Raqqa (SYR) and Mosul (IRA) first, then zooming out on each conflict as a whole.
@@ -291,6 +301,62 @@ Interestingly, it seems Mariupol has seen fewer instances of violence against ci
 ## Q1z, Apr 22 - next steps
 
 We need to filter these by state actors, especially Russian armed forces in Ukraine and Syria.
+
+## Q2 - what specific conflict flash-points perpetrate a rise in attacks on healthcare in Ukraine? Syria? 
+
+Overall answer: A huge limitation of this data is the fact that it does not include location other than country. That means we cannot look at regional data to compare specific battles. 
+
+Syria: Initially we wanted to isolate the 2nd Battle of Raqqa that lasted less than a year between 2016-2017 however, the data doesn't start until 2018. So we looked to see when the highest numbers of attacks occured. The highest number of attacks on healthcare occurred in a 3-day span, from February 19-21, 2018, with 8 attacks the 20th and 21st, and 6 attacks on the 19th. The next highest day was in June. After that weekend, there does not seem to be a pattern. So, we researched what happened on that weekend. There was no specific coverage that weekend, but this was the beginning of period when the Idlib province was obliterated by Russian airstrikes and then chemical warfare was used by the Syrian regime. At this point, without knowing exactly where these incidents occured, we cannot correlate the data to this specific flashpoint but it is very interesting. 
+
+SYRIA
+
+```{r}
+who_syr_total <- who_syr %>% 
+  group_by(attack_date) %>%
+  summarise(attack_id=n()) %>%
+  rename(total_attacks = attack_id)
+syr_flashpoints <- who_syr_total %>%
+  ggplot() + 
+  geom_line(aes(x=attack_date, y=total_attacks)) + 
+  scale_x_date(breaks = "1 month", limits = c(as.Date("2018-01-01")+1,as.Date("2018-12-31"))) +
+  theme(
+    axis.text.x = element_text(angle = 45,  hjust=1) 
+  )  
+syr_flashpoints
+```
+Ukraine here:
+As the siege of Mariupol is ongoing, we can look at all of the data. March 12, 2022 had the most attacks on healthcare in the dataset with 7. March 1st, 3rd and 9th tied for second place with 6 attacks each. Again, like Syria, without coordinates for these attacks we cannot say if the are directly caused by a certain military battle or action. On March 12, Russian forces were zeroing in on Kiev and there was a lot of devasation in Makariv (outside of Kiev). 
+
+```{r}
+who_ukr_total <- who_ukr %>% 
+  group_by(attack_date) %>%
+  summarise(attack_id=n()) %>%
+  rename(total_attacks = attack_id)
+ukr_flashpoints <- who_ukr_total %>%
+  ggplot() + 
+  geom_line(aes(x=attack_date, y=total_attacks)) + 
+  scale_x_date(breaks = "1 day", limits = c(as.Date("2022-02-24")+1,as.Date("2022-04-07"))) +
+  theme(
+    axis.text.x = element_text(angle = 45,  hjust=1) 
+  )  
+ukr_flashpoints
+```
+
+## Q3 - What percentage of incidents of violence against civilians are directed at healthcare facilities and workers?
+
+Since 2018 (when the WHO started collecting Syria data) there have been 292 attacks against healthcare workers and facilities in Syria.
+
+Since the 2022 Russian invasion into Ukraine on Feb 24, 2022, there have been 119 documented attacks against healthcare workers and facilities in Ukraine.
+
+To find percentage, we can choose a figure from a reputable source of total civilian casualties. 
+
+```{r}
+who_syr_all <- who_syr %>%
+  summarize(attack_id=n())
+who_ukr_all <- who_ukr %>%
+  filter(attack_date >= as.Date("2022-02-24")) %>%
+  summarize(attack_id=n())
+```
 
 ## Q4 - which events are deadliest to civilians?
 
