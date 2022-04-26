@@ -224,14 +224,21 @@ A E S T H E T I C
   
 ## Automation
 
+- use "paste" function to make sentences
 
+## T-Test & Linear Regression
+
+*correlate()* - determine correlation coefficient (AKA r value) between all the different variables in a table - see pre_lab_13 for example
+*cor.test(x,y)* - show p-value and r-value between two variables x and y - p value < 0.05 means that the pattern is probably not an abberation
+*t.test(x,y)* - show t-value between two averages, and whether or not they represent a real difference or a statistical abberation
 
 ## Different Libraries
 
-*lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
-*tidyverse* - group of libraries that makes life easier
+*corrr* - linear regression
 *ggthemes* - themes for data visualizations
 *janitor* - makes your data easier to work with my fixing abnormalities in headers and data types
+*lubridate* - for working with dates; "easier to do the things R does with date-times and possible to do the things R does not"
 *rvest* - web scraping! Allah preserve us
 *tidycensus* - API tool for the US Census
+*tidyverse* - group of libraries that makes life easier
 *tigris* - has a FIPS code table in it
