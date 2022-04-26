@@ -93,7 +93,7 @@ sent
 
 
 **A1.**
-"There was a Vehicle Accident today, Tuesday , April 19, 2022 at 07:40 PM on the WVU campus. There have been 8 other incidents of this type on campus in the last 30 days; 1 of those also occured on a Tuesday ."
+"There was a Vehicle Accident today, Tuesday, April 19, 2022 at 07:40 PM on the WVU campus. There have been 8 other incidents of this type on campus in the last 30 days; 1 of those also occured on a Tuesday ."
 
 It would also be interesting to use this data to find out how often incidents occurred at different places around campus. Using str_detect to find how many incidences occurred at fraternity/sorority halls versus residence halls could be enlightening. Are Greek Life halls under-enforced, or over-enforced?
 
@@ -130,23 +130,27 @@ To do that, you will need to:
 ```{r}
 zips_only <- md_zips %>% 
   filter(
-    nchar(zip_code) == 5
+    nchar(zip_code) == 5 &
+    !is.na(fully_vaccinated)
   )
 
 md_only <- zips_only %>% 
   filter(
-    zip_code >= 20601 &
+    zip_code >= 20331 & 
     zip_code <= 21930
   ) %>% 
-  arrange(desc(fully_vaccinated)) %>% 
+  arrange(desc(fully_vaccinated))
+
+md_top25 <- md_only %>% 
   head(25)
 
 non_md <- zips_only %>% 
   filter(
-    zip_code < 20601 |
-    zip_code > 21930
+    zip_code != md_only$zip_code
   ) %>% 
-  arrange(desc(fully_vaccinated)) %>% 
+  arrange(desc(fully_vaccinated))
+
+non_md_top25 <- non_md %>% 
   head(25)
 ```
 
@@ -154,8 +158,8 @@ non_md <- zips_only %>%
 ## 2 - Write to CSV
 
 ```{r}
-write_csv(md_only,str_c("data/maryland_zips_",today(),".csv"))
-write_csv(non_md,str_c("data/non_maryland_zips_",today(),".csv"))
+write_csv(md_top25,str_c("data/maryland_zips_",today(),".csv"))
+write_csv(non_md_top25,str_c("data/non_maryland_zips_",today(),".csv"))
 ```
 
 
@@ -174,16 +178,6 @@ library(tigris)
 **Q3.** Maryland has had one of the more successful vaccination rates, but you want to understand where a significant portion of the population remains less than fully vaccinated. 
 
 Make a dataframe of all Maryland zip codes from the vaccination data you used in Q2 and join it to Maryland zip code population data from the Census API. Calculate the percentage of fully vaccinated for each zip code and then make a map showing the zip codes with less than 50 percent fully vaccinated. 
-
-## 3 - All MD zips
-
-```{r}
-all_md_vax <- md_zips %>% 
-  filter(
-    zip_code >= 20601 &
-    zip_code <= 21930
-  )
-```
 
 ## 3 - MD Population
 
@@ -205,7 +199,7 @@ all_md_pop <- all_md_pop %>%
 
 ```{r}
 pop_vax <- all_md_pop %>% 
-  left_join(all_md_vax, by = 'zip_code') %>% 
+  left_join(md_only, by = 'zip_code') %>% 
   select(zip_code,estimate,fully_vaccinated,geometry) %>% 
   mutate(
     pct_vax = (fully_vaccinated/estimate)*100
@@ -220,10 +214,24 @@ pop_vax <- all_md_pop %>%
 ```{r}
 md_blank <- counties() %>% filter(STATEFP == "24")
 ```
+
+## 3 - get date
+
+```{r}
+get_date <- md_only %>% 
+  slice(1)
+```
+
+## 3 - final map
+
 ```{r}
 ggplot() +
   geom_sf(data=md_blank) +
-  geom_sf(data=pop_vax, aes(color=pct_vax))
+  geom_sf(data=pop_vax, aes(fill=pct_vax)) +
+  scale_fill_distiller(type="seq", palette = 1,direction=1) +
+  labs(
+    title=paste("As of ",format(get_date$date, format("%B %d, %Y")),", rural Maryland lags behind urban centers in number of fully vaccinated residents.", sep = "")
+    )
 ```
 
 
@@ -235,6 +243,4 @@ You WILL need to ensure that the columns you use to join the two dataframes are 
 Describe the output of the map below, and say what you think the most interesting areas are.
 
 **A3.**
-
-```{r}
-```
+The Western Maryland panhandle and the Eastern Shore are, predictably, the areas with the greatest percentage of individuals who are not fully vaccinated. I would be more interested in the ZIP codes in urban centers (Baltimore, near DC) that are also lagging behind. What are the demographics of those places? Is it a misinformation issue, or an access issue?
