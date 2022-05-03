@@ -33,9 +33,24 @@ acled_ukr <- read_csv("data/ukraine_2013_present.csv") %>%
     mutate(event_date=dmy(event_date))
 # WHO
 who_afg <- read_csv("data/WHO_Afghanistan 2001.csv")
-who_ira <- read_csv("data/WHO_Iraq_2002.csv")
+
+who_afg <- clean_names(who_afg) %>% 
+  mutate(attack_date = as_date(attack_date, format = "%m%d%Y"))
+
+who_ira <- read_csv("data/WHO_Iraq_2002.csv") 
+
+who_ira <- clean_names(who_ira) %>% 
+  mutate(attack_date = as_date(attack_date, format = "%m%d%Y"))
+
 who_syr <- read_csv("data/WHO_Syria_2010.csv")
-who_ukr <- read_csv("data/WHO_Ukraine_2013.csv")
+
+who_syr <- clean_names(who_syr) %>% 
+  mutate(attack_date = as_date(attack_date, format = "%m%d%Y"))
+
+who_ukr <- read_csv("data/WHO_Ukraine_2013.csv") 
+
+who_ukr <- clean_names(who_ukr) %>% 
+  mutate(attack_date = as_date(attack_date, format = "%m%d%Y"))
 ```
 
 ## Cleaning WHO
@@ -454,6 +469,7 @@ who_syr_total <- who_syr %>%
   group_by(attack_date) %>%
   summarise(attack_id=n()) %>%
   rename(total_attacks = attack_id)
+
 who_syr_total %>%
   ggplot() + 
   geom_line(aes(x=attack_date, y=total_attacks)) + 
@@ -734,3 +750,18 @@ ukr_dead_per_day
 ## Q4f - Conclusions
 
 It does appear, using the total deaths per day metric, that Russia has caused significantly more civilian deaths than the deadliest actors/events in Syria and Ukraine. The number could be much higher; the significant disadvantage of the ACLED data is the non-uniformity of the formatting in the notes and the actor1 column.
+
+## Q5 & Overall Conclusions
+
+*Is Russia's invasion more brutal than other contemporary conflicts?*
+
+Initially, it certainly appears that Russia's invasion is more brutal than other contemporary conflicts. However, data collection and methodology problems prevent a sure answer. Right now, the world's eyes are turned to Ukraine in ways that they were not for Raqqa or Mosul. Anecdotally, it seems that a much greater emphasis is being placed on documenting war and civilian casualties in Mariupol than there was in other conflicts. 
+
+Because of the limitations of the WHO data, it is impossible to truly ascertain the scope of violence against healthcare facilities and workers. 
+
+While the ACLED data we have now shows Russia (so far) caused significantly more civilian deaths per day than actors in other conflicts, we have to note that right now, most data about civilian casualties in Mariupol is coming from Ukraine. Additionally, we are still relatively early in the conflict in Ukraine, which has lasted a few months so far compared to the years - for instance - of others. Russian forces in Mariupol caused more civilian deaths per day than the Global Coalition against Daesh in Raqqa or the Islamic State in Iraq. 
+
+Interestingly, in Mariupol, Russian forces are on the offensive, which is different than ISIS's position in Mosul at the time where our data was collected (ISIS was being driven out by coalition forces) and the Coalition Against Daesh's position in Raqqa in 2018 (ISIS was taking over Raqqa at the timeframe we studied). It would be interesting to see if the offensive party is typically more deadly when they are a conventional army versus when they are a militia or coalition. Additionally, it would be interesting to see if the offensive party typically causes more casualties across the board or only in certain situations. In U.S. military doctrine, offensive maneuvers like a breach can inflict incredibly high numbers of casualties on soldiers, but there is not a lot of data about civilian casualties in urban areas. Do offensive operations in urban areas cause more civilian casualties? Or do defensive operations typically sustain more civilian casualties?
+
+While our data for healthcare is inconclusive, our data about civilian casualties asks complex questions about warfare and its impacts on civilians. 
+
