@@ -24,7 +24,7 @@ library(tigris)
 library(lubridate)
 library(janitor)
 library(ggthemes)
-scipen=(999)
+options(scipen=999)
 ```
 
 
@@ -141,7 +141,15 @@ zip_pop <- get_acs(geography = "zcta", variables = "B01001_001", year = 2019, ge
   filter(GEOID >= 59001 & GEOID <= 59937)
 ```
 
-## 2b - clean census tables
+## 2b - total loans per cap
+
+```{r}
+mt_loans_per_cap <- mt_ppp %>% 
+  summarise(count=n()) %>% 
+  mutate(per_capita = count/mt_pop$estimate)
+```
+
+## 2c - clean census tables
 
 ```{r}
 county_pop_clean <- county_pop %>% 
@@ -163,7 +171,7 @@ zip_pop_clean <- zip_pop %>%
   select(zip,population,geometry)
 ```
 
-## 2c - join
+## 2d - join
 
 ```{r}
 ppp_by_cou <- mt_ppp_clean %>% 
@@ -177,7 +185,7 @@ ppp_by_zip <- mt_ppp_clean %>%
   left_join(zip_pop_clean, by = "zip")
 ```
 
-## 2d - per capita
+## 2e - per capita
 
 ```{r}
 cou_per_cap <- ppp_by_cou %>% 
@@ -185,8 +193,11 @@ cou_per_cap <- ppp_by_cou %>%
   arrange(desc(loans_per_capita))
 
 zip_per_cap <- ppp_by_zip %>% 
-  mutate(loans_per_capita = count/population) %>% 
-  arrange(desc(loans_per_capita))
+  mutate(
+    loans_per_capita = count/population,
+    per_cap_diff = mt_loans_per_cap$per_capita - loans_per_capita
+  ) %>% 
+  arrange(desc(per_cap_diff))
 
 mt_per_cap <- mt_pop %>% 
   select(NAME,estimate) %>% 
@@ -198,7 +209,7 @@ mt_per_cap <- mt_pop %>%
 
 Then, make a county map using ggplot showing the per-capita data and a zip code map showing the difference from the statewide per-capita figure.
 
-## 2e - Tigris map
+## 2f - Tigris map
 
 ```{r}
 counties <- counties()
@@ -212,7 +223,7 @@ mt_counties %>%
   theme_minimal()
 ```
 
-## 2f - county map
+## 2g - county map
 
 ```{r}
 ggplot() +
@@ -222,44 +233,218 @@ ggplot() +
   theme_minimal()
 ```
 
-## 2f - zip map
+## 2h - zip map
 
 ```{r}
 ggplot() +
   geom_sf(data=mt_counties, fill="white") +
-  geom_sf(data=zip_per_cap, aes(fill=loans_per_capita,geometry=geometry)) +
+  geom_sf(data=zip_per_cap, aes(fill=per_cap_diff,geometry=geometry)) +
   scale_fill_distiller(type = "div", palette = 1, direction = 1, aesthetics = "fill") +
-  theme_minimal()
+  theme_minimal() +
+  labs(
+    title = "ZIP Codes with small populations received massively more loans per capita"
+  )
 ```
 
 
 Describe the most interesting or newsworthy findings based on your exploration.
 
 **A2.** 
-There seem to be a few ZIP codes that had extremely high loans per capita: 59062
+There seem to be a few ZIP codes that had extremely high loans per capita: 59062, 59244, 59424 and 59256 chief among them. These zip codes all have phenomenally low populations - in the case of 59062 in Otter, the loans per capita is actually 1. These are all zip codes in the middle of nowhere, quite far from major (for Montana) metro areas like Bozeman or Missoula.
+
+```{r}
+middle_of_nowhere <- mt_ppp_clean %>% 
+  filter(zip == 59062 | zip == 59244 | zip == 59424 | zip == 59256) %>% 
+  group_by(address) %>% 
+  summarise(count=n(), sum=sum(amount)) %>% 
+  arrange(desc(sum))
+```
+
+On further examination, these organizations are mostly farming and agriculture enterprises, and mostly sole proprietorships or self-employed individuals. Most were small-dollar loans, as well. I think this could make for an interesting story - we often think of the Montanan yeoman farmer as distrustful of the government, yet there are several individuals at the same address taking multiple handouts from the feds to the tune of 60,000 dollars or more. My next reporting step would be to drill down by zip codes with less than 100 people and examine those loans more closely.
 
 ## Lender Analysis
 
-**Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below.
+**Q3.** Write R code to examine which lenders had the most approved applications in your state (and include summary statistics such as total amount and average loan amount). Generate dataframes that show the number and total amount of all loans and undisbursed loans per lender. For those lenders who had any undisbursed loans, make a graphic showing the relationship between the total amount of loans and the total undisbursed amount. Describe the most noticeable outlier lenders on that graphic below. - *THERE ARE NO UNDISBURSED LOANS*
 
-**A3.** 
+If there are no undisbursed loans, make graphic showing the relationship between lenders and loan amounts showing how many loans each lender issued for each amount in the dataframe. Describe the most noticeable outlier lenders on that graphic.
 
-
-## Industry Analysis
-
-**Q4.** Write R code that examines industry patterns for PPP loans in your state, using the NAICS codes from the PPP data as a starting point. Generate statewide and county industry totals, 
-
-## 4a - statewide NAICS
+## 3a - group_by lender
 
 ```{r}
-mt_naics <- mt_ppp_clean %>% 
-  group_by(naics_code) %>% 
-  summarise(count=n()) %>% 
-  arrange(desc(count))
+mt_lenders <- mt_ppp_clean %>% 
+  mutate(
+    amount_bucket = case_when(
+      amount < 50000 ~ "under 50k",
+      amount >= 50000 & amount < 250000 ~ "50k - 250k",
+      amount >= 250000 ~ "250k and over"
+    )
+  ) %>% 
+  group_by(servicing_lender_name,amount_bucket) %>% 
+  summarise(
+    count=n()
+  ) %>%
+  arrange(servicing_lender_name)
+```
+
+## 3b - graphic
+
+```{r}
+mt_lenders %>% 
+  ggplot(aes(x=amount_bucket,y=count,label=servicing_lender_name)) +
+  geom_point() +
+  geom_text(aes(label=ifelse(count>1000,as.character(servicing_lender_name),'')),hjust=-0.05,vjust=0)
+```
+
+## 3c - out-of-state lenders only
+
+```{r}
+non_mt_lenders <- mt_ppp_clean %>% 
+  filter(servicing_lender_state != "MT") %>% 
+  mutate(
+    amount_bucket = case_when(
+      amount < 50000 ~ "under 50k",
+      amount >= 50000 & amount < 250000 ~ "50k - 250k",
+      amount >= 250000 ~ "250k and over"
+    )
+  ) %>% 
+  group_by(servicing_lender_name,amount_bucket) %>% 
+  summarise(
+    count=n()
+  ) %>%
+  arrange(servicing_lender_name)
+```
+
+```{r}
+non_mt_lenders %>% 
+  ggplot(aes(x=amount_bucket,y=count,label=servicing_lender_name)) +
+  geom_point() +
+  geom_text(aes(label=ifelse(count>100,as.character(servicing_lender_name),'')),hjust=-0.05,vjust=0)
 ```
 
 
-then join that with 2018-19 data from the [Census County Business Patterns survey](https://www2.census.gov/programs-surveys/cbp/datasets/2019/cbp19co.zip) using 6-digit NAICS codes. The documentation explaining that data can be found here: https://www2.census.gov/programs-surveys/cbp/technical-documentation/records-layouts/2018_record_layouts/county-layout-2018.txt. To do this, you will need to add FIPS codes to your PPP dataset.
+
+**A3.** 
+It looks like three banks - Glacier Bank, First Interstate Bank and Stockman Bank of Montana - were the most popular lenders in all three of the buckets I used. I tried filtering by out-of-state to find suspicious activity, but it still looks pretty above-board. The most small loans issued by an out-of-state lender was U.S. Bank, National, with just under 800, compared to the whopping 7500+ issued by Glacier Bank. I would probably spend more time looking for outlier banks - i.e. banks that had very few small-dollar loans, but a disproportionate number of loans for 250k and over. There doesn't seem to be anything indicating this pattern in the data I have. Most of the banks follow the same curve across the scatterplot.
+
+## Industry Analysis
+
+**Q4.** Write R code that examines industry patterns for PPP loans in your state, using the NAICS codes from the PPP data as a starting point. Generate statewide and county industry totals, then join that with 2018-19 data from the [Census County Business Patterns survey](https://www2.census.gov/programs-surveys/cbp/datasets/2019/cbp19co.zip) using 6-digit NAICS codes. The documentation explaining that data can be found here: https://www2.census.gov/programs-surveys/cbp/technical-documentation/records-layouts/2018_record_layouts/county-layout-2018.txt. 
+
+To do this, you will need to add FIPS codes to your PPP dataset.
+
+## 4a - read CCBP survey & naics key
+
+```{r}
+naics_survey <- read_csv("data/cbp19co.csv") %>% 
+  filter(
+    fipstate == 30 &
+    !str_detect(naics, "-") &
+    !str_detect(naics, "/")
+  ) %>% 
+  mutate(
+    fips5 = str_c(fipstate,fipscty),
+    naics = as.numeric(naics)     
+  ) %>% 
+  select(fips5,naics,est)
+
+naics_key <- read_csv("data/naics_codes.csv") %>% 
+  rename(naics = naics_code)
+
+naics_survey_names <- naics_survey %>% 
+  left_join(naics_key, by = "naics")
+```
+
+## 4b - get FIPS codes & joining
+
+```{r}
+all_fips <- fips_codes %>% as_tibble()
+
+mt_fips <- all_fips %>% filter(state == 'MT') %>% 
+  mutate(
+    county = str_replace(county, ' County', ''),
+    project_county_name = str_to_upper(county),
+    fips5 = str_c(state_code,county_code)
+  ) %>% 
+  select(project_county_name,fips5)
+
+mt_ppp_fips <- mt_ppp_clean %>% 
+  left_join(mt_fips, by = "project_county_name") %>% 
+  rename(naics = naics_code)
+```
+
+## 4c - statewide NAICS vs CBP
+
+```{r}
+mt_naics <- mt_ppp_fips %>% 
+  group_by(naics) %>% 
+  summarise(
+    count=n()
+  ) %>% 
+  arrange(desc(count)) %>% 
+  head(10)
+
+statewide_cbp <- naics_survey_names %>% 
+  group_by(naics,title) %>% 
+  summarise(total = sum(est)) %>% 
+  arrange(desc(total))
+
+mt_ppp_v_cbp <- mt_naics %>% 
+  left_join(statewide_cbp, by = 'naics')%>% 
+  mutate(
+    diff = total - count
+  )
+```
+
+## 4d - statewide NAICS vs CBP - no single proprietorships or self-employed
+
+```{r}
+mt_naics_no_sp <- mt_ppp_fips %>% 
+  filter(
+    business_type != "Sole Proprietorship" &
+      business_type != "Self-Employed Individuals"
+  ) %>% 
+  group_by(naics) %>% 
+  summarise(
+    count=n()
+  ) %>% 
+  arrange(desc(count)) %>% 
+  head(10)
+
+mt_ppp_v_cbp_no_sp <- mt_naics_no_sp %>% 
+  left_join(statewide_cbp, by = 'naics') %>% 
+  mutate(
+    diff = total - count
+  )
+```
+
+## 4e - county totals for hotels, motels, holiday inns
+
+```{r}
+mt_hotels <- mt_ppp_fips %>% 
+  filter(
+    naics == 721110 &
+      business_type != "Sole Proprietorship" &
+      business_type != "Self-Employed Individuals"
+  ) %>% 
+  group_by(project_county_name,fips5,naics) %>% 
+  summarise(count=n()) %>% 
+  arrange(desc(count))
+
+naics_survey_hotels <- naics_survey %>% 
+  filter(naics == 721110)
+
+mt_hotels_vs_cbp <- mt_hotels %>% 
+  left_join(naics_survey_hotels, by = "fips5") %>% 
+  mutate(
+    est = case_when(
+      is.na(est) ~ 0,
+      TRUE ~ est
+    ),
+    diff = count - est
+  )
+
+write_csv(mt_hotels_vs_cbp, "data/mt_hotels_vs_cbp.csv")
+```
 
 Does the distribution of PPP applications by the top 10 industries (by number of applications) roughly match the number of businesses reported in the Census data? Does it roughly match if you remove self-employed individuals and sole proprietorships from the PPP totals? Write up a summary of what you've found and whether there are potentially newsworthy patterns in the data.
 
@@ -267,8 +452,43 @@ Create a county-level map showing the differences between the PPP applications a
 
 **A4.** 
 
+The biggest problem with Montana and the NAICS survey is that, per the Census website, the CBP "covers most NAICS industries *excluding crop and animal production*" - "Beef Cattle Ranching and Farming" and "Wheat Production" are Montana's two biggest industries.
+
+With this in mind, we are left to examine the remaining top 8 industries. Even when we remove sole proprietorships and the self-employed from our PPP data, there were a good deal more loans distributed than the CBP estimated businesses to exist in half of the top industries in Montana. Without sole proprietorships removed, only lawyers' offices number line up with the number reported by the CBP.
+
+I decided to focus in on hotels and motels for my map, seen here [https://datawrapper.dwcdn.net/5IFe5/1/], because, once single-person operations were removed, they had the biggest discrepancy between loans received and establishments catalogued by the census bureau. I think this is the most newsworthy finding I've seen in the entirety of this project, so I will elaborate further below for question 5. 
+
 ## Summary
 
 **Q5.** What is the most promising story idea that you have found during this exploration? How would you approach reporting it out and what other information/data would you need to do that? What would be the minimum story you could get from this, and what would be the maximum story?
 
 **A5.**
+As I said above, the discrepancy between CBP and PPP data regarding hotels and motels is the most interesting facet of this data to me. I see only a few possible explanations for this circumstance:
+
+  a) 200+ hotels opened across Montana, mostly in Gallatin and Yellowstone counties, between 2019 and 2021;
+  b) The census is doing an exceptionally poor job of cataloguing businesses, or;
+  c) There's a good deal of undiscovered fraud in the PPP data.
+  
+In order to determine which of these three explanations is the most viable, additional reporting must be undertaken. I would want to interview a spokesperson from the Census Bureau, and see if they have been made aware of this type of discrepancy already, and any possible explanations they have for it.
+
+Tourism data collected by Montana's tourism department would be another useful tool. If there was exponential growth of visitors to Montana in the years leading up to 2019, a hotel building boom may be indicated. Perhaps we can get more context from the PPP data itself:
+
+```{r}
+mt_further_inv <- mt_ppp_clean %>% 
+  filter(
+    naics_code == 721110
+  ) %>% 
+  filter(
+    project_county_name == "GALLATIN" |
+    project_county_name == "YELLOWSTONE" |
+    project_county_name == "MISSOULA" |
+    project_county_name == "FLATHEAD"
+  ) %>% 
+  group_by(name) %>% 
+  summarise(
+    total_dollars = sum(amount),
+    total_jobs = sum(jobs_retained)
+  )
+```
+
+Already, we can see massive loans going to a select few hoteliers, and many of these recipients receiving two separate loans. Why were they allowed to double dip? Was this an oversight on the part of the government and lenders, or was this a concerted effort of fraud? At a minimum, this would be a story about an administrative hiccup that led to extra money for the hospitality industry, or perhaps a few instances of out-and-out fraud. But there's a possibility this would uncover absurd incompetence on the part of the Census Bureau, PPP lenders, the SBA, or a combiantion of the three.
