@@ -290,7 +290,7 @@ mar_days <- as.period(mar_int,"days")
 
 ## Q1c - violence against civilians per day
 
-NOTE - divided the numberator by 2 to account for duplicate rows in the dataframe
+NOTE - divided the numerator by 2 to account for duplicate rows in the dataframe
 
 MOSUL - 0.7 per day
 
@@ -395,7 +395,7 @@ MOSUL
 ```
 
 RAQQA
-  Attacker - QSD - 37%
+  Attacker - QSD  - 37%
 ```{r}
 (27/(nrow(raqqa_cv)/2))*100
 ```
@@ -440,13 +440,18 @@ ggplot()+
 MARIUPOL
 
 ```{r}
-mariu_daily <- mariu_cv %>% 
+mariu_daily <- mariu_cv %>%
+  mutate(event_date = dmy(event_date)) %>% 
+  filter(event_date > 01/01/2022) %>% 
   group_by(event_date) %>% 
   summarise(count=n()) %>% 
   arrange(event_date)
 
 ggplot()+
-  geom_line(data = mariu_daily, aes(x=event_date,y=count))
+  geom_line(data = mariu_daily, aes(x=event_date,y=count)) +
+  theme(
+    axis.text.x = element_text(angle = 45,  hjust=1) 
+  ) 
 ```
 
   
@@ -487,14 +492,14 @@ who_ukr_total <- who_ukr %>%
   group_by(attack_date) %>%
   summarise(attack_id=n()) %>%
   rename(total_attacks = attack_id)
-ukr_flashpoints <- who_ukr_total %>%
+
+who_ukr_total %>%
   ggplot() + 
   geom_line(aes(x=attack_date, y=total_attacks)) + 
   scale_x_date(breaks = "1 day", limits = c(as.Date("2022-02-24")+1,as.Date("2022-04-07"))) +
   theme(
     axis.text.x = element_text(angle = 45,  hjust=1) 
   )  
-ukr_flashpoints
 ```
 
 ## Q3 - What percentage of incidents of violence against civilians are directed at healthcare facilities and workers?
@@ -508,6 +513,7 @@ To find percentage, we can choose a figure from a reputable source of total civi
 ```{r}
 who_syr_all <- who_syr %>%
   summarize(attack_id=n())
+
 who_ukr_all <- who_ukr %>%
   filter(attack_date >= as.Date("2022-02-24")) %>%
   summarize(attack_id=n())
@@ -755,13 +761,30 @@ It does appear, using the total deaths per day metric, that Russia has caused si
 
 *Is Russia's invasion more brutal than other contemporary conflicts?*
 
-Initially, it certainly appears that Russia's invasion is more brutal than other contemporary conflicts. However, data collection and methodology problems prevent a sure answer. Right now, the world's eyes are turned to Ukraine in ways that they were not for Raqqa or Mosul. Anecdotally, it seems that a much greater emphasis is being placed on documenting war and civilian casualties in Mariupol than there was in other conflicts. 
+Initially, it certainly appears that Russia's invasion is more brutal than other contemporary conflicts. However, data collection and methodology problems prevent an ironclad final answer. When we calculated incidents of intentional violence against civilians per day in major urban combat zones, we found that Mosul had .7 incidents, Raqqa had .55 and Mariupol had .15 - fewer than the other conflicts surveyed. This would suggest that Russia is not brutal. However, when we compared aggressors and defenders of each conflict, we saw different trends. The defensive forces in Mosul (ISIS) were behind 90% of the incidents of violence against civilians and a similar trend is seen in Raqqa where the defenders (ISIS) were also responsible for most incidents against civilians. However, the trend of defenders being responsible for most civilian incidents falls apart in Mariupol. In this instance, the attacker (Russia) is responsible for 55.6% of incidents against civilians, suggesting Russia is more brutal. However, we do question this data as there were 0 incidents reported of violence against civilians by Ukrainian forces. This seems especially suspect, considering the neo-Nazi Azov battalion, called out time and time again in independent media for being at best callous and at worst openly violent towards non-Ukrainian ethnic populations, is the lynchpin of the remaining defense of Mariupol.
 
-Because of the limitations of the WHO data, it is impossible to truly ascertain the scope of violence against healthcare facilities and workers. 
+It would be interesting to zoom out on other historical urban battles, like Stalingrad or Berlin in the 1940s, to see if the offensive party is typically more deadly when they are a conventional army versus when they are a militia or coalition. Additionally, it would be interesting to see if the offensive party typically causes more casualties across the board or only in certain situations. In U.S. military doctrine, offensive maneuvers like a breach can inflict incredibly high numbers of casualties on soldiers, but there is not a lot of data about civilian casualties in urban areas. Do offensive operations in urban areas cause more civilian casualties? Or do defensive operations typically sustain more civilian casualties? The ACLED data does not distinguish between attackers and defenders, so this remains out of reach.
 
 While the ACLED data we have now shows Russia (so far) caused significantly more civilian deaths per day than actors in other conflicts, we have to note that right now, most data about civilian casualties in Mariupol is coming from Ukraine. Additionally, we are still relatively early in the conflict in Ukraine, which has lasted a few months so far compared to the years - for instance - of others. Russian forces in Mariupol caused more civilian deaths per day than the Global Coalition against Daesh in Raqqa or the Islamic State in Iraq. 
 
-Interestingly, in Mariupol, Russian forces are on the offensive, which is different than ISIS's position in Mosul at the time where our data was collected (ISIS was being driven out by coalition forces) and the Coalition Against Daesh's position in Raqqa in 2018 (ISIS was taking over Raqqa at the timeframe we studied). It would be interesting to see if the offensive party is typically more deadly when they are a conventional army versus when they are a militia or coalition. Additionally, it would be interesting to see if the offensive party typically causes more casualties across the board or only in certain situations. In U.S. military doctrine, offensive maneuvers like a breach can inflict incredibly high numbers of casualties on soldiers, but there is not a lot of data about civilian casualties in urban areas. Do offensive operations in urban areas cause more civilian casualties? Or do defensive operations typically sustain more civilian casualties?
+Next, we analyzed which types of incidents were deadliest to civilians. Our data showed that each conflict was different in terms of the most common cause of casualties. In Iraq, IED/remote explosives caused the most casualties (approximately 3,000 deaths), with ISIS and unidentified armed groups being the primary perpetrators. In Syria, air and drone strikes by the Syrian Army (over 6,000 deaths), Global Coalition to defeat ISIS (over 5,000 deaths) and Russian military forces (over 2,600 deaths) were most deadly. The conflict in Ukraine is ongoing, but so far Russia is responsible for at least 432 civilian deaths from shelling and artillery.
+
+However, these numbers do not reflect the length of each of these conflicts. When we analyze the total numbers of people killed per day, by dividing the total casualties by incident type by the number of wartime days for which we had data, a different picture starts to emerge. In Iraq, ISIS killed 1.27 people via IED per day, most of which were civilians. In  Syria, the Global coalition killed 2.6 people per day while Syrian forces killed 3.2 people per day, by air/drone strikes. Compared to these actors, who already have high numbers, Russian forces in Ukraine have killed a staggering 7.08 people per day via artillery.
+
+Because of the limitations of the WHO data, it is impossible to truly ascertain the scope of violence against healthcare facilities and workers. A lot of our healthcare questions remain unanswered. Anecdotally, Syrian doctors who practiced in Syria and are now traveling to Ukraine, report similar levels of violence. While there are some aspects of the ACLED data that allow for healthcare-related probes, it would be far more useful if somehow the ACLED data could be reliably combined with some of the WHO variables to paint a more holistic picture of that story.
 
 While our data for healthcare is inconclusive, our data about civilian casualties asks complex questions about warfare and its impacts on civilians. 
+
+The biggest discrepancy we need to address is the difference between the question 1 incidents of intentional violence against civilians, and the question 4 figure, which suggests “accidental” violence. The reason for this is collateral damage, which seems to be the main worry for Ukranians living through the Russian invasion, versus intentional terror, which was endemic to ISIS operations in Iraq. One example that paints a good picture of this happened in Raqqa, where 150 civilians were found executed in the Euphrates river. This is not a tactic taken by Russian conscripts, who are not driven by the same religious zeal. Rather than dogmatic mass violence, Ukrainian civilians need to worry about becoming statistics via artillery strikes that are purportedly aimed at tactical targets catching them in the crossfire.
+
+Were we to continue investigating, we would probably incorporate data from Yemen, which has been a “humanitarian catastrophe” but has received a fraction of the media attention that has surrounded Ukraine. Right now, the world's eyes are turned to Ukraine in ways that they were not for Raqqa or Mosul. Anecdotally, it seems that a much greater emphasis is being placed on documenting war and civilian casualties in Mariupol and other Ukrainian battlefields than there was in other conflicts. 
+
+Our next question would be this - have more military fighters been killed than civilians in each conflict? We don’t have the data right now to answer this question. While historiography shows that often civilians pay a higher price than fighters, especially in flashpoints during and after the Second World War, this is not enough to form a conclusion.
+
+One of the biggest lessons we have learned is how hard it is to do data journalism about an ongoing conflict. ACLED collects data from news sources who, moored to state actors or not, may have a vested interest in skewing casualty figures in favor of one actor or another for morale and intelligence purposes. While the numbers in Mosul and Raqqa make sense, we cannot overstate how suspicious it is that there have been zero incidents of violence against civilians perpetrated by the Ukrainian forces, especially accounting for the ideologically motivated regiments within the national guard, e.g. the Azov battalion.
+
+None of this is to say that we haven’t learned anything about the conflict in Ukraine from this analysis. Russian tactics of using overwhelming artillery power can produce unnecessary civilian casualties. It seems that any data reporting on ongoing conflicts needs to be evaluated against and backed up by anecdotal reporting and analysis in a way that might not be necessary for other topics that can be covered by data reporting.
+
+Still, we think that this healthy skepticism should be applied across all datasets we analyze. Throughout this class, we have not done much to analyze the ulterior motives that the Small Business Administration might have in reporting PPP data. Although there is nowhere near the same desire to use information to aid in the defense of a homeland like there is in Ukraine, it could still behoove reporters to question the data and its sources, as journalists have long done for human sources. Who was running the SBA? What would they have to gain from skewing or otherwise misreporting the facts in the PPP data? While this is just an example, and admittedly a fanciful one, we still think that thinking critically about our data sources will only aid in the final product that results from the Nth degree of R analysis.
+
 
